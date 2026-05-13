@@ -705,11 +705,11 @@ function buildStudyCards() {
         front += escHtml(p.text).replace(/\n/g, '<br>');
         back += escHtml(p.text).replace(/\n/g, '<br>');
       } else if (p.type === 'slot') {
-        front += `<span class="slot-orange">[${escHtml(p.text)}]</span>`;
-        back += `<span class="slot-orange">[${escHtml(p.text)}]</span>`;
+        front += `<span style="color:#ffb347;font-style:italic;font-weight:600">[${escHtml(p.text)}]</span>`;
+        back += `<span style="color:#ffb347;font-style:italic;font-weight:600">[${escHtml(p.text)}]</span>`;
       } else if (p.type === 'blank') {
-        front += `<span style="background:var(--border);color:transparent;border-radius:4px;padding:0 4px">${'_'.repeat(Math.min(p.text.length,12))}</span>`;
-        back += `<span class="blank-blue">${escHtml(p.text)}</span>`;
+        front += `<span style="background:#2e3347;color:transparent;border-radius:4px;padding:0 4px;letter-spacing:2px">${'_'.repeat(Math.min(p.text.length,12))}</span>`;
+        back += `<span style="color:#4fc3f7;font-weight:700">${escHtml(p.text)}</span>`;
       }
     });
     cards.push({ ver: v, name: tpl.name, front, back });
