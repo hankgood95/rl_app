@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTE RL 템플릿 퀴즈</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg-card: #1a1d27;
+    --bg-card2: #21263a;
+    --border: #2e3347;
+    --text: #e8eaf0;
+    --text-muted: #8b91a8;
+    --primary: #4f8ef7;
+    --primary-dark: #3a72d8;
+    --accent: #f7934f;
+    --success: #3ecf74;
+    --danger: #e85555;
+    --blank-blue: #4fc3f7;
+    --slot-orange: #ffb347;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 0 80px;
+  }
+  .screen { display: none; padding: 20px 16px; animation: fadeIn .2s; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* Header */
+  .top-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .top-bar .back-btn {
+    background: none; border: none; color: var(--primary); font-size: 20px; cursor: pointer; padding: 4px 8px 4px 0;
+  }
+  .top-bar h2 { font-size: 17px; font-weight: 700; }
+
+  /* Home */
+  .home-hero { text-align: center; padding: 28px 0 20px; }
+  .home-hero .icon { font-size: 52px; }
+  .home-hero h1 { font-size: 24px; font-weight: 800; margin-top: 10px; }
+  .home-hero p { color: var(--text-muted); font-size: 14px; margin-top: 6px; }
+
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
+
+  .option-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt-btn {
+    background: var(--bg-card2); border: 1.5px solid var(--border);
+    color: var(--text-muted); font-size: 13px; font-weight: 600;
+    padding: 7px 14px; border-radius: 20px; cursor: pointer; transition: all .15s;
+  }
+  .opt-btn.selected { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .opt-btn:hover:not(.selected) { border-color: var(--primary); color: var(--primary); }
+
+  .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+  .menu-btn {
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 20px 14px;
+    cursor: pointer; transition: all .15s; text-align: center;
+  }
+  .menu-btn:hover { border-color: var(--primary); background: var(--bg-card2); }
+  .menu-btn .mb-icon { font-size: 28px; }
+  .menu-btn .mb-label { font-size: 14px; font-weight: 700; margin-top: 8px; }
+  .menu-btn .mb-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .menu-btn.primary-btn-menu { border-color: var(--primary); background: rgba(79,142,247,.1); }
+  .menu-btn.primary-btn-menu .mb-label { color: var(--primary); }
+
+  /* Buttons */
+  .btn {
+    display: inline-block; background: var(--primary); color: #fff;
+    border: none; border-radius: var(--radius-sm); padding: 11px 22px;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: background .15s;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn.btn-secondary {
+    background: var(--bg-card2); color: var(--text); border: 1.5px solid var(--border);
+  }
+  .btn.btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+  .btn.btn-danger { background: var(--danger); }
+  .btn.btn-danger:hover { background: #c43e3e; }
+  .btn.btn-full { width: 100%; text-align: center; display: block; padding: 13px; font-size: 15px; }
+
+  /* Quiz */
+  .quiz-meta { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    background: var(--bg-card2); border: 1px solid var(--border); color: var(--text-muted);
+  }
+  .badge.v1 { border-color: #4f8ef7; color: #4f8ef7; }
+  .badge.v2 { border-color: #f7934f; color: #f7934f; }
+  .badge.v3 { border-color: #9b6ff7; color: #9b6ff7; }
+
+  .template-text {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    font-size: 15px; line-height: 2.1;
+  }
+  .slot-text { color: var(--slot-orange); font-style: italic; font-weight: 600; }
+  .blank-input {
+    background: var(--bg-card2); border: 1.5px solid var(--primary);
+    color: var(--text); font-size: 14px; padding: 5px 10px;
+    border-radius: 6px; outline: none; min-width: 160px; max-width: 100%;
+    vertical-align: middle; transition: border-color .15s;
+  }
+  .blank-input:focus { border-color: #7ab3ff; box-shadow: 0 0 0 3px rgba(79,142,247,.2); }
+  .blank-input.correct { border-color: var(--success); background: rgba(62,207,116,.08); }
+  .blank-input.wrong { border-color: var(--danger); background: rgba(232,85,85,.08); }
+  .blank-select {
+    background: var(--bg-card2); border: 1.5px solid var(--primary);
+    color: var(--text); font-size: 13px; padding: 5px 10px;
+    border-radius: 6px; outline: none; vertical-align: middle; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .blank-select.correct { border-color: var(--success); background: rgba(62,207,116,.08); }
+  .blank-select.wrong { border-color: var(--danger); background: rgba(232,85,85,.08); }
+  .hint-text { color: var(--success); font-size: 12px; display: block; margin-top: 2px; }
+  .wrong-hint { color: var(--danger); font-size: 12px; }
+  .correct-answer { color: var(--success); font-size: 12px; }
+
+  .quiz-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .result-msg {
+    margin-top: 14px; padding: 12px 16px;
+    border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; text-align: center;
+  }
+  .result-msg.all-correct { background: rgba(62,207,116,.15); color: var(--success); border: 1px solid rgba(62,207,116,.3); }
+  .result-msg.partial { background: rgba(232,85,85,.12); color: var(--danger); border: 1px solid rgba(232,85,85,.2); }
+
+  /* Study */
+  .tab-bar { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
+  .tab-btn {
+    background: var(--bg-card2); border: 1.5px solid var(--border);
+    color: var(--text-muted); font-size: 13px; font-weight: 600;
+    padding: 7px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all .15s;
+  }
+  .tab-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+  .color-legend { display: flex; gap: 16px; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .flashcard-wrap { perspective: 900px; margin-bottom: 14px; }
+  .flashcard {
+    width: 100%; min-height: 160px;
+    position: relative; transform-style: preserve-3d;
+    transition: transform .45s ease; cursor: pointer; border-radius: var(--radius);
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute; width: 100%;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: var(--radius); padding: 20px;
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    min-height: 160px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .card-face.back { transform: rotateY(180deg); }
+  .card-face .card-label {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px;
+  }
+  .card-face .card-content { font-size: 15px; line-height: 1.9; }
+  .blank-blue { color: var(--blank-blue); font-weight: 700; }
+  .slot-orange { color: var(--slot-orange); font-style: italic; }
+  .flashcard-hint { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 4px; margin-bottom: 8px; }
+  .flashcard-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .flashcard-nav .nav-info { font-size: 13px; color: var(--text-muted); }
+
+  .tips-section { margin-top: 24px; }
+  .tips-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .tips-header h3 { font-size: 15px; font-weight: 700; }
+  .tip-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .tip-card:hover { border-color: var(--accent); }
+  .tip-card .tip-emoji { font-size: 24px; }
+  .tip-card .tip-title { font-size: 14px; font-weight: 700; margin: 8px 0 4px; }
+  .tip-card .tip-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .tip-action { display: flex; justify-content: center; margin-top: 10px; }
+
+  /* Stats */
+  .stat-row { margin-bottom: 20px; }
+  .stat-label { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .stat-label span { font-weight: 700; color: var(--text); }
+  .bar-bg { background: var(--bg-card2); border-radius: 20px; height: 14px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 20px; transition: width .6s ease; }
+  .bar-fill.v1 { background: linear-gradient(90deg, #4f8ef7, #7ab3ff); }
+  .bar-fill.v2 { background: linear-gradient(90deg, #f7934f, #ffb87a); }
+  .bar-fill.v3 { background: linear-gradient(90deg, #9b6ff7, #c4a0ff); }
+  .stat-total { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .empty-msg { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+
+  /* Wrong notes */
+  .wrong-item {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .wrong-item .wrong-cnt {
+    background: var(--danger); color: #fff; font-size: 12px; font-weight: 800;
+    min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .wrong-item .wrong-text { font-size: 14px; font-weight: 600; }
+  .wrong-item .wrong-ver { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* Tips all */
+  .all-tips-grid { display: flex; flex-direction: column; gap: 12px; }
+  .tip-card-full { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .tip-card-full .tip-head { display: flex; align-items: center; gap: 10px; }
+  .tip-card-full .tip-head .tip-emoji { font-size: 22px; }
+  .tip-card-full .tip-head .tip-title { font-size: 14px; font-weight: 700; }
+  .tip-card-full .tip-body { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-top: 8px; padding-left: 32px; }
+
+  /* Misc */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .text-center { text-align: center; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .flex-end { display: flex; justify-content: flex-end; }
+
+  @media (max-width: 400px) {
+    .home-hero h1 { font-size: 20px; }
+    .template-text { font-size: 14px; }
+    .blank-input { min-width: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== HOME ==================== -->
+<div id="screen-home" class="screen active">
+  <div class="home-hero">
+    <div class="icon">🎧</div>
+    <h1>PTE RL 템플릿 퀴즈</h1>
+    <p>Retell Lecture 템플릿을 완벽하게 외워보세요</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">버전 선택</div>
+    <div class="option-group" id="ver-opts">
+      <button class="opt-btn selected" data-ver="1">버전1 · 표준형</button>
+      <button class="opt-btn" data-ver="2">버전2 · 흥미강조형</button>
+      <button class="opt-btn" data-ver="3">버전3 · 통찰강조형</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">모드 선택</div>
+    <div class="option-group" id="mode-opts">
+      <button class="opt-btn selected" data-mode="typing">⌨️ 타이핑</button>
+      <button class="opt-btn" data-mode="dropdown">📋 드롭다운 4지선다</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">난이도</div>
+    <div class="option-group" id="diff-opts">
+      <button class="opt-btn selected" data-diff="3">입문 (3개)</button>
+      <button class="opt-btn" data-diff="5">중급 (5개)</button>
+      <button class="opt-btn" data-diff="8">고급 (8개)</button>
+      <button class="opt-btn" data-diff="all">전체</button>
+    </div>
+  </div>
+
+  <div class="menu-grid">
+    <button class="menu-btn primary-btn-menu" onclick="startQuiz()">
+      <div class="mb-icon">🎯</div>
+      <div class="mb-label">퀴즈 시작</div>
+      <div class="mb-sub">빈칸 채우기</div>
+    </button>
+    <button class="menu-btn" onclick="goStudy()">
+      <div class="mb-icon">📖</div>
+      <div class="mb-label">공부하기</div>
+      <div class="mb-sub">플래시카드</div>
+    </button>
+    <button class="menu-btn" onclick="showScreen('screen-stats')">
+      <div class="mb-icon">📊</div>
+      <div class="mb-label">통계 보기</div>
+      <div class="mb-sub">정답률 분석</div>
+    </button>
+    <button class="menu-btn" onclick="showScreen('screen-wrong')">
+      <div class="mb-icon">📝</div>
+      <div class="mb-label">오답노트</div>
+      <div class="mb-sub">틀린 표현 복습</div>
+    </button>
+  </div>
+</div>
+
+<!-- ==================== QUIZ ==================== -->
+<div id="screen-quiz" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showScreen('screen-home')">←</button>
+    <h2>퀴즈</h2>
+  </div>
+  <div style="padding:16px">
+    <div class="quiz-meta" id="quiz-meta"></div>
+    <div class="template-text" id="quiz-template"></div>
+    <div class="quiz-actions">
+      <button class="btn" onclick="checkAnswers()">✅ 확인</button>
+      <button class="btn btn-secondary" onclick="newQuestion()">🔄 새 문제</button>
+    </div>
+    <div id="quiz-result" class="result-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ==================== STUDY ==================== -->
+<div id="screen-study" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showScreen('screen-home')">←</button>
+    <h2>공부하기</h2>
+  </div>
+  <div style="padding:16px">
+    <div class="tab-bar" id="study-tabs">
+      <button class="tab-btn active" data-stab="1" onclick="setStudyTab(1)">버전1</button>
+      <button class="tab-btn" data-stab="2" onclick="setStudyTab(2)">버전2</button>
+      <button class="tab-btn" data-stab="3" onclick="setStudyTab(3)">버전3</button>
+      <button class="tab-btn" data-stab="all" onclick="setStudyTab('all')">전체보기</button>
+    </div>
+    <div class="color-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--blank-blue)"></div>외울 구문</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--slot-orange)"></div>변수 자리</div>
+    </div>
+    <div id="study-content"></div>
+    <button class="btn btn-full mt-12" id="study-quiz-btn" onclick="startStudyQuiz()">이 버전 퀴즈 풀기</button>
+    <hr class="divider">
+    <div class="tips-section">
+      <div class="tips-header">
+        <h3>💡 꿀팁</h3>
+        <button class="btn btn-secondary" style="font-size:12px;padding:6px 12px" onclick="showScreen('screen-tips')">전체보기</button>
+      </div>
+      <div class="tip-card" id="random-tip-card" onclick="nextRandomTip()"></div>
+      <div class="tip-action"><button class="btn btn-secondary mt-8" onclick="nextRandomTip()">🎲 다른 꿀팁 보기</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== STATS ==================== -->
+<div id="screen-stats" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showScreen('screen-home')">←</button>
+    <h2>통계</h2>
+  </div>
+  <div style="padding:16px">
+    <div id="stats-content"></div>
+    <div class="flex-end mt-16">
+      <button class="btn btn-danger" onclick="resetStats()">통계 초기화</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== WRONG NOTES ==================== -->
+<div id="screen-wrong" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showScreen('screen-home')">←</button>
+    <h2>오답노트</h2>
+  </div>
+  <div style="padding:16px">
+    <div id="wrong-content"></div>
+    <div class="flex-end mt-16">
+      <button class="btn btn-danger" onclick="resetWrong()">오답노트 초기화</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TIPS ALL ==================== -->
+<div id="screen-tips" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showScreen('screen-study')">←</button>
+    <h2>꿀팁 전체보기</h2>
+  </div>
+  <div style="padding:16px">
+    <div class="all-tips-grid" id="all-tips-content"></div>
+  </div>
+</div>
+
+<script>
+// ========== DATA ==========
+const TEMPLATES = {
+  1: {
+    name: '버전1 · 표준형',
+    shortName: 'V1',
+    parts: [
+      { type: 'fixed', text: 'The given lecture provides us with some information about ' },
+      { type: 'slot', text: '(주제)' },
+      { type: 'fixed', text: '.\nAccording to the speaker, the main point discussed was ' },
+      { type: 'blank', text: 'that / the importance of' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\nAnd this is followed by some important details, such as ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: ', and the speaker further emphasized ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\n' },
+      { type: 'blank', text: 'Lastly, the speaker mentioned' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\n' },
+      { type: 'blank', text: 'Overall, this lecture clearly explained' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(주제)' },
+      { type: 'fixed', text: '\nand the speaker presented the information in a ' },
+      { type: 'blank', text: 'well-structured manner' },
+      { type: 'fixed', text: '.' },
+    ]
+  },
+  2: {
+    name: '버전2 · 흥미강조형',
+    shortName: 'V2',
+    parts: [
+      { type: 'fixed', text: 'This is an ' },
+      { type: 'blank', text: 'interesting' },
+      { type: 'fixed', text: ' lecture about ' },
+      { type: 'slot', text: '(주제)' },
+      { type: 'fixed', text: '.\nAccording to the speaker, one of the most ' },
+      { type: 'blank', text: 'notable' },
+      { type: 'fixed', text: ' points was that / the importance of ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\nThe speaker also ' },
+      { type: 'blank', text: 'covered several important aspects like' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '\nand ' },
+      { type: 'blank', text: 'stressed the significance of' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\nLastly, the speaker mentioned ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\n' },
+      { type: 'blank', text: 'Overall, this lecture clearly explained' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(주제)' },
+      { type: 'fixed', text: '\nand the speaker presented the information in a ' },
+      { type: 'blank', text: 'well-organized manner' },
+      { type: 'fixed', text: '.' },
+    ]
+  },
+  3: {
+    name: '버전3 · 통찰강조형',
+    shortName: 'V3',
+    parts: [
+      { type: 'fixed', text: 'This is an ' },
+      { type: 'blank', text: 'insightful' },
+      { type: 'fixed', text: ' lecture about ' },
+      { type: 'slot', text: '(주제)' },
+      { type: 'fixed', text: '.\nAccording to the speaker, he/she ' },
+      { type: 'blank', text: 'addressed' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\nAnd this statement is followed by some important details, ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '\nand he/she ' },
+      { type: 'blank', text: 'emphasized' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\n' },
+      { type: 'blank', text: 'Lastly, the speaker mentioned' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(내용)' },
+      { type: 'fixed', text: '.\n' },
+      { type: 'blank', text: 'All in all, it is clear that this lecture is about' },
+      { type: 'fixed', text: ' ' },
+      { type: 'slot', text: '(주제)' },
+      { type: 'fixed', text: '\nand the speaker presented the information in a ' },
+      { type: 'blank', text: 'well organized manner' },
+      { type: 'fixed', text: '.' },
+    ]
+  }
+};
+
+const TIPS = [
+  { emoji: '⏰', title: '10초의 준비 시간', body: '강의 종료 후 준비 시간은 단 10초. 짧은 시간 안에 답변을 완성하려면 강의 도중 핵심 내용을 받아 적는 노트테이킹이 필수.' },
+  { emoji: '📝', title: '키워드·구(phrase) 중심 노트테이킹', body: '문장을 통째로 적기보다 템플릿 (내용) 자리에 들어갈 핵심 단어나 2개 이상의 단어로 된 구 형태로 적는 것이 효율적.' },
+  { emoji: '📚', title: '다양한 어휘 확보', body: '제목 제외 같은 단어 반복 금지. 강의에서 나온 다양한 표현을 최대한 많이 적어야 Vocabulary 점수 획득 가능.' },
+  { emoji: '⏱️', title: '35~40초 분량 확보', body: '답변 시간을 35~40초 채워서 말하는 것이 중요. 충분한 양을 메모. 결론(Conclusion)을 다 맺지 않아도 OK.' },
+  { emoji: '🗣️', title: '유창성(Fluency) 우선', body: '노트한 내용을 템플릿 흐름에 맞춰 배치 후, 문법이 틀리더라도 멈추지 말고 유창성과 발음에 집중.' },
+  { emoji: '🎙️', title: '발음 유지', body: '발음이 뭉개지지 않는 선에서 약간 빠른 속도로. 속도와 발음의 균형 유지.' },
+  { emoji: '🔄', title: '반복 표현 피하기', body: '동일한 단어 반복 대신 다양한 표현 사용. 노트테이킹 때부터 여러 표현을 적어두면 도움.' },
+  { emoji: '🧩', title: '템플릿 + 노트 조합 전략', body: '핵심은 "10초 안에 답변 완성". 미리 외운 템플릿 골격에 노트테이킹한 핵심어들을 채워넣는 전략.' },
+];
+
+// ========== STATE ==========
+let settings = { ver: 1, mode: 'typing', diff: 3 };
+let quizState = { blanks: [], indices: [], checked: false };
+let studyTab = 1;
+let studyCardIdx = 0;
+let studyFlipped = false;
+let currentTipIdx = Math.floor(Math.random() * TIPS.length);
+
+// ========== LOCAL STORAGE ==========
+function getStats() {
+  return JSON.parse(localStorage.getItem('pte_stats') || '{"1":{"correct":0,"total":0},"2":{"correct":0,"total":0},"3":{"correct":0,"total":0}}');
+}
+function saveStats(s) { localStorage.setItem('pte_stats', JSON.stringify(s)); }
+function getWrong() { return JSON.parse(localStorage.getItem('pte_wrong') || '{}'); }
+function saveWrong(w) { localStorage.setItem('pte_wrong', JSON.stringify(w)); }
+
+function recordResult(ver, correct, total, wrongTexts) {
+  const s = getStats();
+  s[ver].correct += correct;
+  s[ver].total += total;
+  saveStats(s);
+  if (wrongTexts.length) {
+    const w = getWrong();
+    wrongTexts.forEach(txt => {
+      const key = ver + ':' + txt;
+      w[key] = (w[key] || { ver, txt, cnt: 0 });
+      w[key].cnt++;
+    });
+    saveWrong(w);
+  }
+}
+
+// ========== NAVIGATION ==========
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-stats') renderStats();
+  if (id === 'screen-wrong') renderWrong();
+  if (id === 'screen-study') { renderStudy(); renderRandomTip(); }
+  if (id === 'screen-tips') renderAllTips();
+  window.scrollTo(0, 0);
+}
+
+// ========== HOME OPTIONS ==========
+document.getElementById('ver-opts').addEventListener('click', e => {
+  const btn = e.target.closest('.opt-btn'); if (!btn) return;
+  document.querySelectorAll('#ver-opts .opt-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  settings.ver = parseInt(btn.dataset.ver);
+});
+document.getElementById('mode-opts').addEventListener('click', e => {
+  const btn = e.target.closest('.opt-btn'); if (!btn) return;
+  document.querySelectorAll('#mode-opts .opt-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  settings.mode = btn.dataset.mode;
+});
+document.getElementById('diff-opts').addEventListener('click', e => {
+  const btn = e.target.closest('.opt-btn'); if (!btn) return;
+  document.querySelectorAll('#diff-opts .opt-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  settings.diff = btn.dataset.diff === 'all' ? 'all' : parseInt(btn.dataset.diff);
+});
+
+// ========== QUIZ ==========
+function getBlanks(ver) {
+  return TEMPLATES[ver].parts.reduce((arr, p, i) => { if (p.type === 'blank') arr.push(i); return arr; }, []);
+}
+
+function getAllBlankTexts() {
+  const all = [];
+  [1,2,3].forEach(v => TEMPLATES[v].parts.forEach(p => { if (p.type === 'blank') all.push(p.text); }));
+  return [...new Set(all)];
+}
+
+function pickBlanks(ver, count) {
+  const indices = getBlanks(ver);
+  if (count === 'all' || count >= indices.length) return indices;
+  const shuffled = [...indices].sort(() => Math.random() - .5);
+  return shuffled.slice(0, count);
+}
+
+function getWrongOptions(correct) {
+  const all = getAllBlankTexts().filter(t => t !== correct);
+  const shuffled = all.sort(() => Math.random() - .5).slice(0, 3);
+  return [correct, ...shuffled].sort(() => Math.random() - .5);
+}
+
+function startQuiz() {
+  showScreen('screen-quiz');
+  renderQuiz();
+}
+
+function newQuestion() { renderQuiz(); }
+
+function renderQuiz() {
+  quizState.checked = false;
+  document.getElementById('quiz-result').style.display = 'none';
+  const ver = settings.ver;
+  const tpl = TEMPLATES[ver];
+  const selectedIndices = pickBlanks(ver, settings.diff);
+  quizState.indices = selectedIndices;
+
+  // meta badges
+  const vClass = ['v1','v2','v3'][ver-1];
+  document.getElementById('quiz-meta').innerHTML =
+    `<span class="badge ${vClass}">${tpl.shortName}</span>` +
+    `<span class="badge">${settings.mode === 'typing' ? '⌨️ 타이핑' : '📋 드롭다운'}</span>` +
+    `<span class="badge">${selectedIndices.length}개 빈칸</span>`;
+
+  // build template HTML
+  let html = '';
+  tpl.parts.forEach((part, idx) => {
+    if (part.type === 'fixed') {
+      html += escHtml(part.text).replace(/\n/g, '<br>');
+    } else if (part.type === 'slot') {
+      html += `<span class="slot-text">[${escHtml(part.text)}]</span>`;
+    } else if (part.type === 'blank') {
+      if (selectedIndices.includes(idx)) {
+        if (settings.mode === 'typing') {
+          html += `<input class="blank-input" data-idx="${idx}" data-answer="${escAttr(part.text)}" placeholder="입력하세요" autocomplete="off" spellcheck="false">`;
+        } else {
+          const opts = getWrongOptions(part.text);
+          let selHtml = `<select class="blank-select" data-idx="${idx}" data-answer="${escAttr(part.text)}">`;
+          selHtml += `<option value="">-- 선택 --</option>`;
+          opts.forEach(o => { selHtml += `<option value="${escAttr(o)}">${escHtml(o)}</option>`; });
+          selHtml += '</select>';
+          html += selHtml;
+        }
+      } else {
+        html += `<span class="blank-blue">${escHtml(part.text)}</span>`;
+      }
+    }
+  });
+  document.getElementById('quiz-template').innerHTML = html;
+}
+
+function normalize(str) { return str.trim().toLowerCase().replace(/\s+/g, ' '); }
+
+function checkAnswers() {
+  if (quizState.checked) return;
+  quizState.checked = true;
+  const ver = settings.ver;
+  const inputs = document.querySelectorAll('#quiz-template [data-idx]');
+  let correct = 0, total = inputs.length;
+  const wrongTexts = [];
+
+  inputs.forEach(el => {
+    const answer = el.dataset.answer;
+    const userVal = el.value;
+    const isCorrect = normalize(userVal) === normalize(answer);
+    if (isCorrect) {
+      el.classList.add('correct');
+      correct++;
+    } else {
+      el.classList.add('wrong');
+      wrongTexts.push(answer);
+      // show correct answer hint below the element
+      const hint = document.createElement('span');
+      hint.className = 'hint-text';
+      hint.textContent = '정답: ' + answer;
+      el.insertAdjacentElement('afterend', hint);
+    }
+  });
+
+  recordResult(ver, correct, total, wrongTexts);
+
+  const resultEl = document.getElementById('quiz-result');
+  resultEl.style.display = 'block';
+  if (correct === total) {
+    resultEl.className = 'result-msg all-correct';
+    resultEl.textContent = '🎉 전체 정답! 완벽합니다!';
+  } else {
+    resultEl.className = 'result-msg partial';
+    resultEl.textContent = `${correct}/${total} 정답 — ${total - correct}개 틀렸습니다.`;
+  }
+}
+
+// ========== STUDY ==========
+function goStudy() {
+  studyTab = settings.ver;
+  showScreen('screen-study');
+}
+
+function setStudyTab(tab) {
+  studyTab = tab;
+  studyCardIdx = 0;
+  studyFlipped = false;
+  document.querySelectorAll('#study-tabs .tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.stab == tab);
+  });
+  renderStudy();
+}
+
+function getStudyVersions() {
+  if (studyTab === 'all') return [1, 2, 3];
+  return [parseInt(studyTab)];
+}
+
+function buildStudyCards() {
+  const vers = getStudyVersions();
+  const cards = [];
+  vers.forEach(v => {
+    const tpl = TEMPLATES[v];
+    // front: template with blanks hidden as ___
+    // back: template with blanks shown in blue
+    let front = '', back = '';
+    tpl.parts.forEach(p => {
+      if (p.type === 'fixed') {
+        front += escHtml(p.text).replace(/\n/g, '<br>');
+        back += escHtml(p.text).replace(/\n/g, '<br>');
+      } else if (p.type === 'slot') {
+        front += `<span class="slot-orange">[${escHtml(p.text)}]</span>`;
+        back += `<span class="slot-orange">[${escHtml(p.text)}]</span>`;
+      } else if (p.type === 'blank') {
+        front += `<span style="background:var(--border);color:transparent;border-radius:4px;padding:0 4px">${'_'.repeat(Math.min(p.text.length,12))}</span>`;
+        back += `<span class="blank-blue">${escHtml(p.text)}</span>`;
+      }
+    });
+    cards.push({ ver: v, name: tpl.name, front, back });
+  });
+  return cards;
+}
+
+let studyCards = [];
+
+function renderStudy() {
+  studyCards = buildStudyCards();
+  studyCardIdx = Math.max(0, Math.min(studyCardIdx, studyCards.length - 1));
+  studyFlipped = false;
+
+  if (!studyCards.length) { document.getElementById('study-content').innerHTML = '<p class="empty-msg">데이터 없음</p>'; return; }
+
+  const card = studyCards[studyCardIdx];
+  const vClass = ['v1','v2','v3'][card.ver-1];
+
+  const navHtml = `
+    <div class="flashcard-nav">
+      <button class="btn btn-secondary" style="padding:7px 14px;font-size:13px" onclick="prevCard()">◀</button>
+      <span class="nav-info">${studyCardIdx+1} / ${studyCards.length} — <span class="badge ${vClass}" style="font-size:10px;padding:2px 8px">${card.name}</span></span>
+      <button class="btn btn-secondary" style="padding:7px 14px;font-size:13px" onclick="nextCard()">▶</button>
+    </div>`;
+
+  const cardHtml = `
+    <div class="flashcard-wrap" style="height:200px">
+      <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="card-face front">
+          <div class="card-label">앞면 — 빈칸 채우기</div>
+          <div class="card-content">${card.front}</div>
+        </div>
+        <div class="card-face back">
+          <div class="card-label">뒷면 — 정답 확인</div>
+          <div class="card-content">${card.back}</div>
+        </div>
+      </div>
+    </div>
+    <p class="flashcard-hint">카드를 클릭하면 뒤집힙니다</p>`;
+
+  document.getElementById('study-content').innerHTML = navHtml + cardHtml;
+
+  // Update quiz button visibility for "all" tab
+  const quizBtn = document.getElementById('study-quiz-btn');
+  if (studyTab === 'all') {
+    quizBtn.textContent = '퀴즈 풀기 (홈으로)';
+    quizBtn.onclick = () => showScreen('screen-home');
+  } else {
+    quizBtn.textContent = `버전${studyTab} 퀴즈 풀기`;
+    quizBtn.onclick = () => { settings.ver = parseInt(studyTab); startStudyQuiz(); };
+  }
+}
+
+function flipCard() {
+  studyFlipped = !studyFlipped;
+  const fc = document.getElementById('flashcard');
+  if (fc) fc.classList.toggle('flipped', studyFlipped);
+}
+
+function prevCard() {
+  studyCardIdx = (studyCardIdx - 1 + studyCards.length) % studyCards.length;
+  studyFlipped = false;
+  renderStudy();
+}
+
+function nextCard() {
+  studyCardIdx = (studyCardIdx + 1) % studyCards.length;
+  studyFlipped = false;
+  renderStudy();
+}
+
+function startStudyQuiz() {
+  if (studyTab !== 'all') settings.ver = parseInt(studyTab);
+  startQuiz();
+}
+
+// ========== TIPS ==========
+function renderRandomTip() {
+  currentTipIdx = Math.floor(Math.random() * TIPS.length);
+  renderTipCard();
+}
+
+function nextRandomTip() {
+  currentTipIdx = (currentTipIdx + 1) % TIPS.length;
+  renderTipCard();
+}
+
+function renderTipCard() {
+  const tip = TIPS[currentTipIdx];
+  document.getElementById('random-tip-card').innerHTML = `
+    <div class="tip-emoji">${tip.emoji}</div>
+    <div class="tip-title">${tip.title}</div>
+    <div class="tip-body">${tip.body}</div>`;
+}
+
+function renderAllTips() {
+  document.getElementById('all-tips-content').innerHTML = TIPS.map((tip, i) => `
+    <div class="tip-card-full">
+      <div class="tip-head">
+        <span class="tip-emoji">${tip.emoji}</span>
+        <span class="tip-title">${i+1}. ${tip.title}</span>
+      </div>
+      <div class="tip-body">${tip.body}</div>
+    </div>`).join('');
+}
+
+// ========== STATS ==========
+function renderStats() {
+  const s = getStats();
+  let html = '';
+  [1,2,3].forEach(v => {
+    const d = s[v];
+    const pct = d.total ? Math.round(d.correct / d.total * 100) : 0;
+    const vClass = ['v1','v2','v3'][v-1];
+    html += `
+      <div class="stat-row">
+        <div class="stat-label">
+          ${TEMPLATES[v].name}
+          <span>${pct}%</span>
+        </div>
+        <div class="bar-bg"><div class="bar-fill ${vClass}" style="width:${pct}%"></div></div>
+        <div class="stat-total">총 ${d.total}문제 중 ${d.correct}개 정답</div>
+      </div>`;
+  });
+  if (!Object.values(s).some(d => d.total > 0)) {
+    html = '<p class="empty-msg">아직 퀴즈를 풀지 않았습니다.<br>퀴즈를 풀면 통계가 쌓여요!</p>';
+  }
+  document.getElementById('stats-content').innerHTML = html;
+}
+
+function resetStats() {
+  if (!confirm('통계를 초기화하시겠습니까?')) return;
+  saveStats({"1":{"correct":0,"total":0},"2":{"correct":0,"total":0},"3":{"correct":0,"total":0}});
+  renderStats();
+}
+
+// ========== WRONG NOTES ==========
+function renderWrong() {
+  const w = getWrong();
+  const entries = Object.values(w).sort((a, b) => b.cnt - a.cnt);
+  if (!entries.length) {
+    document.getElementById('wrong-content').innerHTML = '<p class="empty-msg">오답노트가 비어있습니다.<br>퀴즈에서 틀린 표현이 여기 쌓여요!</p>';
+    return;
+  }
+  const vNames = { 1: '버전1 표준형', 2: '버전2 흥미강조형', 3: '버전3 통찰강조형' };
+  document.getElementById('wrong-content').innerHTML = entries.map(e => `
+    <div class="wrong-item">
+      <div class="wrong-cnt">${e.cnt}</div>
+      <div>
+        <div class="wrong-text">${escHtml(e.txt)}</div>
+        <div class="wrong-ver">${vNames[e.ver] || ''}</div>
+      </div>
+    </div>`).join('');
+}
+
+function resetWrong() {
+  if (!confirm('오답노트를 초기화하시겠습니까?')) return;
+  saveWrong({});
+  renderWrong();
+}
+
+// ========== UTILS ==========
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(str) {
+  return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ========== INIT ==========
+renderRandomTip();
+</script>
+</body>
+</html>
